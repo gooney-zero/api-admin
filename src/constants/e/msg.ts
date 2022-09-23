@@ -12,6 +12,7 @@ export const MsgFlags = {
   [ErrorCode.ERROR_USER_WRONG_ADMIN_PASSWORD]: '管理员密码错误',
 
   [ErrorCode.ERROR_BASE_MENU_NAME_ALREADY_EXIST]: 'name已存在',
+  [ErrorCode.ERROR_BASE_MENU_NAME_NOTFOUND_PARENT]: '未找到父菜单',
 
   [ErrorCode.ERROR_AUTHORITY_ALREADY_EXIST]: '权限id已存在',
 };

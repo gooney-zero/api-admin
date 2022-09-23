@@ -29,22 +29,26 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // token验证, payload是super中已经解析好的token信息
   async validate(
-    payload: { username: string; id: number; authorityId: number } & JwtPayload,
+    payload: {
+      username: string;
+      uuid: string;
+      authorityId: number;
+    } & JwtPayload,
     done: VerifiedCallback,
   ) {
     // return payload;
-    const { iat, exp, id, authorityId } = payload;
+    const { iat, exp, uuid, authorityId } = payload;
     const timeDiff = exp - iat;
     if (timeDiff <= 0) {
       throw new ApiException(ErrorCode.LOGIN_HAS_EXPIRED);
     }
 
-    const user = await this.userService.getUserInfo(id);
+    const { data: user } = await this.userService.getUserInfo(uuid);
     if (!user) {
       throw new ApiException(ErrorCode.NOT_LOGGED_IN);
     }
 
     delete user.password;
-    done(null, { id: user.id, authorityId: authorityId });
+    done(null, { uuid: user.uuid, authorityId: authorityId });
   }
 }

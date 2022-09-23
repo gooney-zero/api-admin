@@ -8,6 +8,9 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  Tree,
+  TreeChildren,
+  TreeParent,
 } from 'typeorm';
 import { MenuAuthorityEntity } from './menu_authority.entity';
 
@@ -35,6 +38,7 @@ export class Meta {
 }
 
 @Entity('sys_base_menus')
+@Tree('closure-table')
 export class BaseMenusEntity extends BaseEntity {
   @Column()
   name: string;
@@ -58,9 +62,9 @@ export class BaseMenusEntity extends BaseEntity {
   @OneToMany(() => MenuAuthorityEntity, (v) => v.menu)
   authorityToMenus: MenuAuthorityEntity[];
 
-  @ManyToOne((type) => BaseMenusEntity, (menu) => menu.children)
+  @TreeParent()
   parent: BaseMenusEntity;
 
-  @OneToMany((type) => BaseMenusEntity, (menu) => menu.parent)
+  @TreeChildren()
   children: BaseMenusEntity[];
 }

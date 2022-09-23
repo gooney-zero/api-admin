@@ -13,13 +13,12 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger';
 import { ApiResult } from '@/common/decorators/api.result.decorator';
 import { CreateVo } from './vo/create.vo';
 import { ResultData } from '@/common/data/result.data';
-import { Authorize } from '@/common/decorators/authorize.decorator';
-import { UsersEntity } from './entities/user.entity';
+import { GetUserVo } from './vo/GetUser.vo';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('user')
 @ApiBearerAuth()
-@ApiExtraModels(ResultData, CreateVo, CreateUserDto)
+@ApiExtraModels(ResultData, CreateVo, CreateUserDto, GetUserVo)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -43,8 +42,9 @@ export class UserController {
   /**
    * 查找当前用户
    */
+  @ApiResult(GetUserVo)
   @Get('/getUserInfo')
   getUserInfo(@Request() req) {
-    return this.userService.getUserInfo(req.user.id);
+    return this.userService.getUserInfo(req.user.uuid);
   }
 }

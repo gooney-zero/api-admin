@@ -32,11 +32,7 @@ export class TransformInterceptor implements NestInterceptor {
         //   res.set('Authenticated', data.token);
         //   delete data.token;
         // }
-        return {
-          data,
-          code: 200,
-          message: 'success',
-        };
+        return data;
       }),
     );
   }

@@ -3,7 +3,14 @@ import { BaseMenusEntity } from '@/modules/basemenus/entities/basemenu.entity';
 import { MenuAuthorityEntity } from '@/modules/basemenus/entities/menu_authority.entity';
 import { UsersEntity } from '@/modules/user/entities/user.entity';
 import { IsOptional } from 'class-validator';
-import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 
 @Entity('sys_authorities')
 export class AuthorityEntity extends BaseWithoutIdEntity {

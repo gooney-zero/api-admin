@@ -3,13 +3,13 @@ import {
   Entity,
   Column,
   Generated,
-  BeforeInsert,
   ManyToMany,
   JoinTable,
-  OneToOne,
   JoinColumn,
+  OneToMany,
+  OneToOne,
+  ManyToOne,
 } from 'typeorm';
-import { genSaltSync, hashSync } from 'bcryptjs';
 import { Exclude } from 'class-transformer';
 import { AuthorityEntity } from '@/modules/authority/entities/authority.entity';
 
@@ -59,8 +59,8 @@ export class UsersEntity extends BaseEntity {
   @Column({ nullable: true })
   enable: number;
 
-  @OneToOne(() => AuthorityEntity)
-  @JoinColumn()
+  @ManyToOne(() => AuthorityEntity, (authority) => authority.users)
+  @JoinColumn({ name: 'authorityId' })
   authority: AuthorityEntity;
 
   @ManyToMany(() => AuthorityEntity, (authority) => authority.users)

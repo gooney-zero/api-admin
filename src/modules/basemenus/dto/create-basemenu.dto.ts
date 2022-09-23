@@ -34,6 +34,12 @@ export class CreateBasemenuDto {
   meta: Meta;
 
   /**
+   * 父级菜单ID 0是根菜单
+   *  @example 0
+   */
+  @IsNumber()
+  parentId: number;
+  /**
    * 需要设置的权限数组
    * @example [999]
    */

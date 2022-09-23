@@ -23,12 +23,23 @@ export class AuthorityService {
       .then(() => ResultData.ok());
   }
 
-  findAll() {
+  findAll(authorityId: number) {
     return this.authorityRepository
       .createQueryBuilder('authority')
       .leftJoinAndSelect('authority.users', 'users')
       .leftJoinAndSelect('authority.baseMenus', 'baseMenus')
-      .getManyAndCount();
+      .getMany()
+      .then((v) => {
+        ResultData.ok(v);
+      });
+  }
+  findList(page: number, pageSize: number) {
+    return this.authorityRepository
+      .createQueryBuilder('authority')
+      .skip(pageSize * (page - 1))
+      .take(pageSize)
+      .getManyAndCount()
+      .then((v) => ResultData.ok({ list: v[0], total: v[1] }));
   }
 
   findOne(id: number) {

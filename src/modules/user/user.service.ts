@@ -30,8 +30,11 @@ export class UserService {
         authority.authorityId = id;
         return authority;
       });
+      const authority = new AuthorityEntity();
+      authority.authorityId = createUserDto.authorityId;
+
       return this.userRepository
-        .save({ ...createUserDto, authorities, authority: authorities[0] })
+        .save({ ...createUserDto, authorities, authority: authority })
         .then((user) => {
           return ResultData.ok(instanceToPlain(NewCreateVo(user.uuid)));
         });
@@ -45,22 +48,26 @@ export class UserService {
       .createQueryBuilder('user')
       .addSelect('user.password')
       .where({ userName })
-      .getOne();
+      .getOne()
+      .then((v) => ResultData.ok(v));
   }
 
-  getUserInfo(id: number) {
+  getUserInfo(uuid: string) {
     return this.userRepository
       .createQueryBuilder('user')
-      .where('user.id = :id', { id })
+      .where('user.uuid = :uuid', { uuid })
       .leftJoinAndSelect('user.authority', 'authority')
-      .getOne();
+      .leftJoinAndSelect('user.authorities', 'authorities')
+      .getOne()
+      .then((v) => ResultData.ok(v));
   }
 
   findAll() {
     return this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.authorities', 'authorities')
-      .getManyAndCount();
+      .getMany()
+      .then((v) => ResultData.ok(v));
   }
 
   initUser() {

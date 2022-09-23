@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string) {
-    const user = await this.usersService.findWithPassword(username);
+    const { data: user } = await this.usersService.findWithPassword(username);
     if (!user) {
       return ResultData.fail(ErrorCode.ERROR_USER_WRONG_PASSWORD);
     }
@@ -26,8 +26,8 @@ export class AuthService {
     return ResultData.ok(user);
   }
 
-  async validateUserById(id: number) {
-    const user = await this.usersService.getUserInfo(id);
+  async validateUserById(uuid: string) {
+    const user = await this.usersService.getUserInfo(uuid);
     if (!user) {
       return ResultData.fail(ErrorCode.ERROR_USER_WRONG_PASSWORD);
     }
@@ -36,10 +36,10 @@ export class AuthService {
   async login(user: UsersEntity) {
     const payload = {
       username: user.userName,
-      id: user.id,
+      uuid: user.uuid,
       authorityId: user.authorityId,
     };
-    return {
+    return ResultData.ok({
       access_token: this.genToken(payload),
       user: {
         uuid: user.uuid,
@@ -50,10 +50,10 @@ export class AuthService {
         activeColor: user.activeColor,
         baseColor: user.baseColor,
       },
-    };
+    });
   }
 
-  genToken(payload: { username: string; id: number }) {
+  genToken(payload: { username: string; uuid: string; authorityId: number }) {
     return `Bearer ${this.jwtService.sign(payload)}`;
   }
 
