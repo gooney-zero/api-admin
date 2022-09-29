@@ -1,4 +1,5 @@
 import { ApiResult } from '@/common/decorators/api.result.decorator';
+import { SWAGGER_TOKEN_NAME } from '@/constants/common';
 import {
   Controller,
   Get,
@@ -17,13 +18,13 @@ import { UpdateAuthorityDto } from './dto/update-authority.dto';
 import { GetAuthorityListVO } from './vo/GetAuthorityList.vo';
 
 @ApiTags('authority')
-@ApiBearerAuth()
+@ApiBearerAuth(SWAGGER_TOKEN_NAME)
 @ApiExtraModels(GetAuthorityListVO)
 @Controller('authority')
 export class AuthorityController {
   constructor(private readonly authorityService: AuthorityService) {}
 
-  @Post()
+  @Post('/create')
   create(@Body() createAuthorityDto: CreateAuthorityDto) {
     return this.authorityService.create(createAuthorityDto);
   }
@@ -43,12 +44,7 @@ export class AuthorityController {
     return this.authorityService.findList(page, pageSize);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authorityService.findOne(+id);
-  }
-
-  @Patch(':id')
+  @Post('/update/:id')
   update(
     @Param('id') id: string,
     @Body() updateAuthorityDto: UpdateAuthorityDto,
@@ -56,7 +52,12 @@ export class AuthorityController {
     return this.authorityService.update(+id, updateAuthorityDto);
   }
 
-  @Delete(':id')
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.authorityService.findOne(+id);
+  }
+
+  @Post('/delete/:id')
   remove(@Param('id') id: string) {
     return this.authorityService.remove(+id);
   }

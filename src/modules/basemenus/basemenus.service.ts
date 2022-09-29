@@ -2,7 +2,7 @@ import { ResultData } from '@/common/data/result.data';
 import { ErrorCode } from '@/constants/e/code';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository, TreeRepository } from 'typeorm';
 import { AuthorityService } from '../authority/authority.service';
 import { AuthorityEntity } from '../authority/entities/authority.entity';
 import { CreateBasemenuDto } from './dto/create-basemenu.dto';
@@ -16,7 +16,7 @@ export class BasemenusService {
     @InjectEntityManager()
     private conn: EntityManager,
     @InjectRepository(BaseMenusEntity)
-    private baseMenusRepository: Repository<BaseMenusEntity>,
+    private baseMenusRepository: TreeRepository<BaseMenusEntity>,
     @InjectRepository(MenuAuthorityEntity)
     private menuAuthorityEntity: Repository<MenuAuthorityEntity>,
     private authorityService: AuthorityService,
@@ -31,12 +31,12 @@ export class BasemenusService {
     let child = new BaseMenusEntity();
     const { parentId, ...rest } = createBasemenuDto;
 
-    child = Object.assign(menu, rest);
+    child = Object.assign(child, rest);
 
     // parentId !== 0说明是子菜单
-    if (createBasemenuDto.parentId !== 0) {
+    if (parentId !== 0) {
       const parent = await this.baseMenusRepository.findOne({
-        where: { id: createBasemenuDto.parentId },
+        where: { id: parentId },
       });
       if (!parent) {
         return ResultData.fail(ErrorCode.ERROR_BASE_MENU_NAME_NOTFOUND_PARENT);
@@ -89,6 +89,17 @@ export class BasemenusService {
       .where('menu.id IN (:...menuIds)', { menuIds })
       .orderBy('menu.sort', 'DESC')
       .getMany()
+      .then((v) => {
+        return ResultData.ok(v);
+      })
+      .catch((e) => {
+        return e.sqlMessage;
+      });
+  }
+
+  getAllOfMenu() {
+    return this.baseMenusRepository
+      .findTrees()
       .then((v) => {
         return ResultData.ok(v);
       })

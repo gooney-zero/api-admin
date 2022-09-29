@@ -59,11 +59,15 @@ export class UsersEntity extends BaseEntity {
   @Column({ nullable: true })
   enable: number;
 
-  @ManyToOne(() => AuthorityEntity, (authority) => authority.users)
+  @ManyToOne(() => AuthorityEntity, (authority) => authority.users, {
+    cascade: true,
+  })
   @JoinColumn({ name: 'authorityId' })
   authority: AuthorityEntity;
 
-  @ManyToMany(() => AuthorityEntity, (authority) => authority.users)
+  @ManyToMany(() => AuthorityEntity, (authority) => authority.users, {
+    cascade: true,
+  })
   @JoinTable({
     name: 'sys_user_authority',
     joinColumns: [{ name: 'user_id' }],

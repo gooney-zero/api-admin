@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginVo } from './vo/login.vo';
+import { SWAGGER_TOKEN_NAME } from '@/constants/common';
 
 @ApiTags('auth用户登录')
 @ApiBearerAuth()
@@ -35,6 +36,7 @@ export class AuthController {
   @ApiResult(LoginVo)
   @UseGuards(LocalAuthGuard)
   @Post('/login')
+  @ApiBearerAuth(SWAGGER_TOKEN_NAME)
   @Authorize()
   async login(@Request() req, @Body() user: LoginDto) {
     return this.authService.login(req.user);

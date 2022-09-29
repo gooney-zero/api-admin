@@ -11,11 +11,13 @@ import { UploadService } from './upload.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { editFileName, fileFilter } from '@/utils/file-upload.util';
 import { diskStorage } from 'multer';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Authorize } from '@/common/decorators/authorize.decorator';
 import { Response as ExpressRes } from 'express';
+import { SWAGGER_TOKEN_NAME } from '@/constants/common';
 
 @ApiTags('文件上传')
+@ApiBearerAuth(SWAGGER_TOKEN_NAME)
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

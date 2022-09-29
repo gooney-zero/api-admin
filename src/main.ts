@@ -10,6 +10,7 @@ import { HttpExceptionsFilter } from './common/filter/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { logger } from './common/middleware/logger.middleware';
 import { RootConfig } from './config/configurations';
+import { SWAGGER_TOKEN_NAME } from './constants/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,7 +22,7 @@ async function bootstrap() {
     .setTitle('Nest-Admin App')
     .setDescription('Nest-Admin App 接口文档')
     .setVersion('2.0.0')
-    .addBearerAuth()
+    .addBearerAuth(null, SWAGGER_TOKEN_NAME)
     .build();
   const document = SwaggerModule.createDocument(app, swaggerOptions);
   // 项目依赖当前文档功能，最好不要改变当前地址

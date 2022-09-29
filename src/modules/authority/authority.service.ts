@@ -1,8 +1,10 @@
 import { ResultData } from '@/common/data/result.data';
 import { ErrorCode } from '@/constants/e/code';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
+import { BaseMenusEntity } from '../basemenus/entities/basemenu.entity';
+import { MenuAuthorityEntity } from '../basemenus/entities/menu_authority.entity';
 import { CreateAuthorityDto } from './dto/create-authority.dto';
 import { UpdateAuthorityDto } from './dto/update-authority.dto';
 import { AuthorityEntity } from './entities/authority.entity';
@@ -12,6 +14,7 @@ export class AuthorityService {
   constructor(
     @InjectRepository(AuthorityEntity)
     private authorityRepository: Repository<AuthorityEntity>,
+    @InjectEntityManager() private entityManager: EntityManager,
   ) {}
   async create(createAuthorityDto: CreateAuthorityDto) {
     const item = await this.authorityRepository.findOne({
@@ -19,7 +22,7 @@ export class AuthorityService {
     });
     if (item) return ResultData.fail(ErrorCode.ERROR_AUTHORITY_ALREADY_EXIST);
     return this.authorityRepository
-      .save(createAuthorityDto)
+      .insert(createAuthorityDto)
       .then(() => ResultData.ok());
   }
 
@@ -36,6 +39,8 @@ export class AuthorityService {
   findList(page: number, pageSize: number) {
     return this.authorityRepository
       .createQueryBuilder('authority')
+      .leftJoinAndSelect('authority.baseMenus', 'baseMenus')
+      .leftJoinAndSelect('baseMenus.children', 'children')
       .skip(pageSize * (page - 1))
       .take(pageSize)
       .getManyAndCount()
@@ -46,12 +51,55 @@ export class AuthorityService {
     return `This action returns a #${id} authority`;
   }
 
-  update(id: number, updateAuthorityDto: UpdateAuthorityDto) {
-    return `This action updates a #${id} authority`;
+  async update(id: number, updateAuthorityDto: UpdateAuthorityDto) {
+    return await this.entityManager.transaction(async (manager) => {
+      const authority = await manager.findOne(AuthorityEntity, {
+        where: { authorityId: id },
+      });
+      if (!authority) {
+        return ResultData.fail(ErrorCode.ERROR_AUTHORITY_NOT_EXIST);
+      }
+      const authorityEntity = new AuthorityEntity();
+      authorityEntity.name = updateAuthorityDto.name;
+      authorityEntity.authorityId = id;
+      authorityEntity.defaultRouter = updateAuthorityDto.defaultRouter;
+      return manager
+        .save(authorityEntity)
+        .then(() => ResultData.ok())
+        .catch(() => ResultData.fail(ErrorCode.ERROR_AUTHORITY_WRONG_FAIL));
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} authority`;
+  async remove(id: number) {
+    return await this.entityManager.transaction(async (manager) => {
+      const authority = await manager.findOne(AuthorityEntity, {
+        where: { authorityId: id },
+        relations: {
+          users: true,
+          baseMenus: true,
+        },
+      });
+      if (authority.users.length > 0) {
+        return ResultData.fail(
+          ErrorCode.ERROR_AUTHORITY_WRONG_HAVE_USER_USEING,
+        );
+      }
+      const a = new AuthorityEntity();
+      a.authorityId = id;
+      if (authority.baseMenus.length > 0) {
+        const mas = await manager.findBy(MenuAuthorityEntity, {
+          authority_id: id,
+        });
+        const ma = new MenuAuthorityEntity();
+        ma.authority_id = id;
+        a.baseMenus = [];
+        // await manager.remove(ma);
+      }
+      return await manager
+        .remove(a)
+        .then(() => ResultData.ok())
+        .catch(() => ResultData.fail(ErrorCode.ERROR_USER_WRONG_DELETE_FAIL));
+    });
   }
 
   init() {
@@ -66,9 +114,11 @@ export class AuthorityService {
   }
 
   addMenuAuthority(auth: AuthorityEntity) {
-    return this.authorityRepository.save(auth).catch((e) => {
-      console.log(e);
-      return e;
-    });
+    return this.authorityRepository
+      .save(auth)
+      .then(() => ResultData.ok())
+      .catch((e) => {
+        return ResultData.fail(ErrorCode.ERROR_AUTHORITY_WRONG_ADD_MENY);
+      });
   }
 }

@@ -6,7 +6,7 @@ export class UpdateBasemenuDto {
   baseMenus: BaseMenusEntity[];
 
   /**
-   * 当前登录用户的权限
+   * 需要添加菜单的权限
    * @example 999
    */
   @IsInt()

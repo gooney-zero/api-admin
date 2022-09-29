@@ -3,12 +3,13 @@ import { ErrorCode } from '@/constants/e/code';
 import { passwordToHash } from '@/utils/password.helper';
 // import { passwordToHash } from '@/utils/password.helper';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain } from 'class-transformer';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { AuthorityService } from '../authority/authority.service';
 import { AuthorityEntity } from '../authority/entities/authority.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersEntity } from './entities/user.entity';
 import { NewCreateVo } from './vo/create.vo';
 
@@ -18,6 +19,7 @@ export class UserService {
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
     private authorityService: AuthorityService,
+    @InjectEntityManager() private entityManager: EntityManager,
   ) {}
   async create(createUserDto: CreateUserDto) {
     const user = await this.userRepository.findOne({
@@ -41,6 +43,45 @@ export class UserService {
     }
     const code = ErrorCode.ERROR_USER_ALREADY_EXIST;
     return ResultData.fail(code);
+  }
+
+  async setUserInfo(updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({
+      where: { uuid: updateUserDto.uuid },
+    });
+    if (!user) {
+      return ResultData.fail(ErrorCode.ERROR_USER_NOT_EXIST);
+    }
+
+    return await this.entityManager.transaction(async (manager) => {
+      const userEntity = new UsersEntity();
+      if (updateUserDto.authorities?.length) {
+        const authorities: AuthorityEntity[] = [];
+        for (let i = 0; i < updateUserDto.authorities.length; i++) {
+          const listOne = await manager.findOne(AuthorityEntity, {
+            where: { authorityId: updateUserDto.authorities[i] },
+          });
+          if (!listOne) {
+            return ResultData.fail(ErrorCode.ERROR_AUTHORITY_NOT_EXIST);
+          }
+          authorities.push(listOne);
+        }
+        userEntity.authorities = authorities;
+      }
+      userEntity.id = user.id;
+      userEntity.sideMode = updateUserDto.sideMode;
+      userEntity.headerImg = updateUserDto.headerImg;
+      userEntity.baseColor = updateUserDto.baseColor;
+      userEntity.activeColor = updateUserDto.activeColor;
+      userEntity.phone = updateUserDto.phone;
+      userEntity.email = updateUserDto.email;
+      userEntity.enable = updateUserDto.enable;
+      userEntity.authorityId = updateUserDto.authorityId;
+      return manager
+        .save(userEntity)
+        .then(() => ResultData.ok())
+        .catch(() => ResultData.fail(ErrorCode.ERROR_USER_WRONG_UPDATE));
+    });
   }
 
   findWithPassword(userName: string) {
@@ -68,6 +109,28 @@ export class UserService {
       .leftJoinAndSelect('user.authorities', 'authorities')
       .getMany()
       .then((v) => ResultData.ok(v));
+  }
+
+  async delUser(userUuid: string, uuid: string) {
+    if (userUuid === uuid) {
+      return ResultData.fail(ErrorCode.ERROR_USER_WRONG_DELETE_SELF);
+    }
+    const user = await this.userRepository.findOne({
+      where: { uuid },
+    });
+    if (!user) {
+      return ResultData.fail(ErrorCode.ERROR_USER_NOT_EXIST);
+    }
+    return await this.entityManager.transaction(async (manager) => {
+      const userEntity = new UsersEntity();
+      userEntity.id = user.id;
+      userEntity.authorities = [];
+      await manager.save(userEntity);
+      return manager
+        .softRemove(user)
+        .then(() => ResultData.ok())
+        .catch(() => ResultData.fail(ErrorCode.ERROR_USER_WRONG_DELETE_FAIL));
+    });
   }
 
   initUser() {

@@ -1,4 +1,5 @@
 import { Logger } from '@/common/interceptors/logger.interceptor';
+import { SWAGGER_TOKEN_NAME } from '@/constants/common';
 import {
   Controller,
   Get,
@@ -15,12 +16,12 @@ import { CreateBasemenuDto } from './dto/create-basemenu.dto';
 import { UpdateBasemenuDto } from './dto/update-basemenu.dto';
 
 @ApiTags('basemenu')
-@ApiBearerAuth()
+@ApiBearerAuth(SWAGGER_TOKEN_NAME)
 @Controller('basemenus')
 export class BasemenusController {
   constructor(private readonly basemenusService: BasemenusService) {}
 
-  @Post()
+  @Post('/create')
   create(@Body() createBasemenuDto: CreateBasemenuDto) {
     return this.basemenusService.create(createBasemenuDto);
   }
@@ -33,5 +34,9 @@ export class BasemenusController {
   @Get('getMenus')
   getMenus(@Request() req) {
     return this.basemenusService.getMenus(req.user.authorityId);
+  }
+  @Get('getAllOfMenu')
+  getAllOfMenu() {
+    return this.basemenusService.getAllOfMenu();
   }
 }
