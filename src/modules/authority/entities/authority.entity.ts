@@ -1,6 +1,5 @@
 import { BaseWithoutIdEntity } from '@/modules/base.withoutid.entity';
 import { BaseMenusEntity } from '@/modules/basemenus/entities/basemenu.entity';
-import { MenuAuthorityEntity } from '@/modules/basemenus/entities/menu_authority.entity';
 import { UsersEntity } from '@/modules/user/entities/user.entity';
 import { IsOptional } from 'class-validator';
 import {
@@ -34,7 +33,4 @@ export class AuthorityEntity extends BaseWithoutIdEntity {
     inverseJoinColumns: [{ name: 'menu_id' }],
   })
   baseMenus: BaseMenusEntity[];
-
-  @OneToMany(() => MenuAuthorityEntity, (v) => v.menu)
-  authorityToMenus: MenuAuthorityEntity[];
 }

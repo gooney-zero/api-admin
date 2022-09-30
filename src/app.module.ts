@@ -23,6 +23,7 @@ import { AppController } from './app.controller';
           ...configService.database,
           synchronize: true,
           autoLoadEntities: true,
+          logger: 'advanced-console',
           cache: {
             duration: 60000, // 1分钟的缓存
           },

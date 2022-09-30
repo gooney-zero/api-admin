@@ -4,16 +4,11 @@ import { BasemenusController } from './basemenus.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BaseMenusEntity } from './entities/basemenu.entity';
 import { AuthorityModule } from '../authority/authority.module';
-import { MenuAuthorityEntity } from './entities/menu_authority.entity';
 import { EntityManager } from 'typeorm';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      BaseMenusEntity,
-      MenuAuthorityEntity,
-      EntityManager,
-    ]),
+    TypeOrmModule.forFeature([BaseMenusEntity, EntityManager]),
     AuthorityModule,
   ],
   controllers: [BasemenusController],

@@ -3,8 +3,6 @@ import { ErrorCode } from '@/constants/e/code';
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { BaseMenusEntity } from '../basemenus/entities/basemenu.entity';
-import { MenuAuthorityEntity } from '../basemenus/entities/menu_authority.entity';
 import { CreateAuthorityDto } from './dto/create-authority.dto';
 import { UpdateAuthorityDto } from './dto/update-authority.dto';
 import { AuthorityEntity } from './entities/authority.entity';
@@ -87,11 +85,11 @@ export class AuthorityService {
       const a = new AuthorityEntity();
       a.authorityId = id;
       if (authority.baseMenus.length > 0) {
-        const mas = await manager.findBy(MenuAuthorityEntity, {
-          authority_id: id,
-        });
-        const ma = new MenuAuthorityEntity();
-        ma.authority_id = id;
+        // const mas = await manager.findBy(MenuAuthorityEntity, {
+        //   authority_id: id,
+        // });
+        // const ma = new MenuAuthorityEntity();
+        // ma.authority_id = id;
         a.baseMenus = [];
         // await manager.remove(ma);
       }

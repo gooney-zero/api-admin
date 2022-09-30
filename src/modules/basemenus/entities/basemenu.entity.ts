@@ -10,9 +10,9 @@ import {
   OneToMany,
   Tree,
   TreeChildren,
+  TreeLevelColumn,
   TreeParent,
 } from 'typeorm';
-import { MenuAuthorityEntity } from './menu_authority.entity';
 
 export class Meta {
   /**
@@ -59,12 +59,13 @@ export class BaseMenusEntity extends BaseEntity {
   @IsOptional()
   authorities?: AuthorityEntity[];
 
-  @OneToMany(() => MenuAuthorityEntity, (v) => v.menu)
-  authorityToMenus: MenuAuthorityEntity[];
+  @TreeLevelColumn()
+  @Column({ default: null, nullable: true })
+  parentId: number;
 
   @TreeParent()
   parent: BaseMenusEntity;
 
-  @TreeChildren()
+  @TreeChildren({ cascade: true })
   children: BaseMenusEntity[];
 }

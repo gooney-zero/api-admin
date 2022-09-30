@@ -8,7 +8,6 @@ import { AuthorityEntity } from '../authority/entities/authority.entity';
 import { CreateBasemenuDto } from './dto/create-basemenu.dto';
 import { UpdateBasemenuDto } from './dto/update-basemenu.dto';
 import { BaseMenusEntity } from './entities/basemenu.entity';
-import { MenuAuthorityEntity } from './entities/menu_authority.entity';
 
 @Injectable()
 export class BasemenusService {
@@ -17,8 +16,6 @@ export class BasemenusService {
     private conn: EntityManager,
     @InjectRepository(BaseMenusEntity)
     private baseMenusRepository: TreeRepository<BaseMenusEntity>,
-    @InjectRepository(MenuAuthorityEntity)
-    private menuAuthorityEntity: Repository<MenuAuthorityEntity>,
     private authorityService: AuthorityService,
   ) {}
   async create(createBasemenuDto: CreateBasemenuDto) {
@@ -44,6 +41,11 @@ export class BasemenusService {
       child.parent = parent;
     }
     return this.baseMenusRepository.save(child).then((res) => {
+      const closureTableName =
+        this.baseMenusRepository.metadata.closureJunctionTable.tablePath;
+      // 需要手动更新 closureTable 的 id_ancestor的值 typroem的bug 如果不更新 默认id_ancestor 和 id_descendant都是 child的id
+      const sql = `UPDATE ${closureTableName} SET id_ancestor =${res.parent.id}  WHERE id_ancestor = ${res.id} AND id_descendant =${res.id} `;
+      this.baseMenusRepository.query(sql);
       return ResultData.ok(res);
     });
   }
@@ -78,25 +80,51 @@ export class BasemenusService {
     return `This action removes a #${id} basemenu`;
   }
   async getMenus(authorityId: number) {
-    const authorityMenus = await this.menuAuthorityEntity.findBy({
-      authority_id: authorityId,
-    });
-
-    const menuIds = authorityMenus.map((v) => v.menu_id);
-    return this.baseMenusRepository
-      .createQueryBuilder('menu')
-      .leftJoinAndSelect('menu.children', 'children')
-      .where('menu.id IN (:...menuIds)', { menuIds })
-      .orderBy('menu.sort', 'DESC')
-      .getMany()
-      .then((v) => {
-        return ResultData.ok(v);
-      })
-      .catch((e) => {
-        return e.sqlMessage;
+    return await this.conn.transaction(async (manager) => {
+      const menus = await manager.findOne(AuthorityEntity, {
+        where: { authorityId },
+        relations: {
+          baseMenus: true,
+        },
+        select: {
+          baseMenus: true,
+        },
       });
+      return await Promise.all(
+        menus.baseMenus.map(async (v) =>
+          this.baseMenusRepository.findDescendantsTree(v),
+        ),
+      )
+        .then((v) => ResultData.ok(v))
+        .catch((e) => {
+          return e.sqlMessage;
+        });
+    });
   }
 
+  async getFlatMenusById(authorityId: number) {
+    return await this.conn.transaction(async (manager) => {
+      const authority = await manager.findOne(AuthorityEntity, {
+        where: { authorityId },
+        relations: ['baseMenus'],
+        select: ['baseMenus'],
+      });
+      const menus = authority.baseMenus.map(
+        async (menu) =>
+          await manager
+            .getTreeRepository(BaseMenusEntity)
+            .findDescendants(menu),
+      );
+      return Promise.all(menus)
+
+        .then((v) => {
+          return ResultData.ok([...authority.baseMenus, ...v.flat()]);
+        })
+        .catch((e) => {
+          return e;
+        });
+    });
+  }
   getAllOfMenu() {
     return this.baseMenusRepository
       .findTrees()

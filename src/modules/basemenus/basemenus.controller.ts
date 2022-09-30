@@ -39,4 +39,9 @@ export class BasemenusController {
   getAllOfMenu() {
     return this.basemenusService.getAllOfMenu();
   }
+
+  @Get('/getFlatMenus/:id')
+  getFlatMenusById(@Param('id') authorityId: number) {
+    return this.basemenusService.getFlatMenusById(authorityId);
+  }
 }
