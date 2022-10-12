@@ -1,5 +1,4 @@
-import { AuthorityEntity } from '@/modules/authority/entities/authority.entity';
-import { ArrayNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 import { Meta } from '../entities/basemenu.entity';
 
 export class CreateBasemenuDto {

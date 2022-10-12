@@ -15,7 +15,11 @@ export const MsgFlags = {
   [ErrorCode.ERROR_USER_WRONG_DELETE_FAIL]: '删除失败',
 
   [ErrorCode.ERROR_BASE_MENU_NAME_ALREADY_EXIST]: 'name已存在',
+  [ErrorCode.ERROR_BASE_MENU_NAME_NOTFOUND]: 'name已存在',
   [ErrorCode.ERROR_BASE_MENU_NAME_NOTFOUND_PARENT]: '未找到父菜单',
+  [ErrorCode.ERROR_BASE_MENU_NOT_EXIST]: '菜单不存在',
+  [ErrorCode.ERROR_BASE_MENU_HAS_EXIST_CHILDREN]: '有子菜单不可删除',
+  [ErrorCode.ERROR_BASE_MENU_DELETE_FAIL]: '删除失败',
 
   [ErrorCode.ERROR_AUTHORITY_ALREADY_EXIST]: '权限id已存在',
   [ErrorCode.ERROR_AUTHORITY_NOT_EXIST]: '权限id不存在',

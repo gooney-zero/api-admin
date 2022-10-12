@@ -13,6 +13,8 @@ import {
 import { ApiTags, ApiBearerAuth, ApiExtraModels } from '@nestjs/swagger';
 import { BasemenusService } from './basemenus.service';
 import { CreateBasemenuDto } from './dto/create-basemenu.dto';
+import { RemoveBasemenuDto } from './dto/remove-basemenu.dto';
+import { UpdateBasemenuAuthorityDto } from './dto/update-basemenu-authority.dto';
 import { UpdateBasemenuDto } from './dto/update-basemenu.dto';
 
 @ApiTags('basemenu')
@@ -26,8 +28,18 @@ export class BasemenusController {
     return this.basemenusService.create(createBasemenuDto);
   }
 
+  @Post('/update')
+  update(@Body() updateBasemenuDto: UpdateBasemenuDto) {
+    return this.basemenusService.update(updateBasemenuDto);
+  }
+
+  @Post('/remove')
+  remove(@Body() removeBasemenuDto: RemoveBasemenuDto) {
+    return this.basemenusService.remove(removeBasemenuDto.id);
+  }
+
   @Post('addmenuAuthority')
-  addmenuAuthority(@Body() updateBasemenuDto: UpdateBasemenuDto) {
+  addmenuAuthority(@Body() updateBasemenuDto: UpdateBasemenuAuthorityDto) {
     return this.basemenusService.addMenuAuthority(updateBasemenuDto);
   }
 
